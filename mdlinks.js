@@ -1,19 +1,23 @@
-const { mdLinks } = require('./index.js');
+const mdLinks = require('./index.js');
 
-const directory = './filesMarkdown';
-const options = { validate: true }; // Cambiar a false si no se desea validar los links
+// get the directory desde la línea de comandos
+const directory = process.argv[2];  // get directory proporcionado en la linea de comandos
+const options = { validate: true };
+const cat = { validate: false };
 
 mdLinks(directory, options)
   .then((links) => {
-    const validLinks = links.filter((link) => link.valid);
-    const invalidLinks = links.filter((link) => !link.valid);
-
-    console.log('Enlaces válidos:');
-    console.log(validLinks);
-
-    console.log('Enlaces inválidos:');
-    console.log(invalidLinks);
+    console.log('\nLinks found:', links);
   })
   .catch((error) => {
-    console.error('Error:', error);
+    console.error('\nError in the route of directory: \n', error);
   });
+/*
+  mdLinks(directory, cat)
+  .then((links) => {
+    console.log('\nLinks found false:', links);
+  })
+  .catch((error) => {
+    console.error('\nError in the route of directory: \n', error);
+  });
+  */
