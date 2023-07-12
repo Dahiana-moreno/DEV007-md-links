@@ -1,4 +1,4 @@
-const fs = require('fs');
+/* const fs = require('fs');
 
 function extractMdLinks(directory) {
   fs.readdir(directory, (error, files) => {
@@ -27,7 +27,7 @@ function extractMdLinks(directory) {
           const matches = data.matchAll(linkRegex);
 
           for (const match of matches) {
-            const [, text, url] = match;
+          const [, text, url] = match;
             links.push({ text, url, file });
           }
 
@@ -44,3 +44,4 @@ function extractMdLinks(directory) {
 
 const directory = './filesMarkdown';
 extractMdLinks(directory);
+*/
