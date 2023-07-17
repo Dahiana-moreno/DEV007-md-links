@@ -1,23 +1,16 @@
+/* eslint-disable no-shadow */
+/* eslint-disable no-cond-assign */
+/* eslint-disable no-param-reassign */
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 
-function fetchUrl(link) { // fetchUrl para utilizar axios y hacer solicitud HTTP
-  /* la función fetchUrl() que utiliza axios para hacer
-   una solicitud HTTP HEAD a un enlace y obtener el estado 
-   de la respuesta. Si la solicitud es exitosa, asignamos el
-    estado y el texto del estado al objeto link. Si hay un error,
-     verificamos si existe una respuesta en el objeto de error y,
-      de ser así, asignamos el estado y el texto del estado al objeto link
-      . Finalmente, devolvemos el objeto link actualizado.
-      */
+function fetchUrl(link) {
   return axios
     .head(link.href)
     .then((response) => {
       link.status = response.status;
       link.statusText = response.statusText;
-      // console.log(href)
-
       return link;
     })
     .catch((error) => {
@@ -32,37 +25,63 @@ function fetchUrl(link) { // fetchUrl para utilizar axios y hacer solicitud HTTP
 function mdLinks(directory, options) {
   return new Promise((resolve, reject) => {
     const resolvedPath = path.resolve(directory);
-    // console.log(directory)
-    console.log(options); // status de validate y stats
+    const searchLinks = /\[([^\]]+)\]\(([^)]+)\)/g;
+    let match;
 
-    // Verificamos el tipo de archivo o directorio
+    console.log(options);
+
     fs.stat(resolvedPath, (error, stats) => {
       if (error) {
         reject(error);
         return;
       }
-      // console.log(resolvedPath) //ruta absoluta del archivo
+
+      const links = [];
 
       if (stats.isFile()) {
-        const link = { href: resolvedPath, text: '', file: resolvedPath };
-        resolve(options.validate ? [fetchUrl(link)] : [link]);
-      // console.log(link)
-      } else if (stats.isDirectory()) {
-        fs.readdir(resolvedPath, (error, files) => {
-          // console.log(files) // archivos md principal y las carpetas
+        fs.readFile(resolvedPath, 'utf8', (error, data) => {
           if (error) {
             reject(error);
             return;
           }
-          // console.log(stats.isFile())
+
+          while ((match = searchLinks.exec(data)) !== null) { // archivos individuales
+            const [, text, href] = match;
+            const link = { href, text, file: resolvedPath };
+
+            if (options.validate) {
+              fetchUrl(link)
+                .then(() => {
+                  links.push(link);
+                  resolve(links);
+                })
+                .catch(() => {
+                  console.log('Error:', error);
+                  links.push(link);
+                  resolve(links);
+                });
+            } else {
+              links.push(link);
+              resolve(links);
+            }
+          }
+
+          if (!options.validate) {
+            resolve(links);
+          }
+        });
+      } else if (stats.isDirectory()) {
+        fs.readdir(resolvedPath, (error, files) => {
+          if (error) {
+            reject(error);
+            return;
+          }
 
           function processFiles(filePaths, index) {
             if (index >= filePaths.length) {
               resolve(links);
               return;
             }
-            // console.log(links) extrae link con href, text,file
-
 
             const filePath = filePaths[index];
 
@@ -78,21 +97,18 @@ function mdLinks(directory, options) {
                     reject(error);
                     return;
                   }
-                  // console.log(filePath) 
-                  const searchLinks = /\[([^\]]+)\]\(([^)]+)\)/g;
-                  let match;
 
                   while ((match = searchLinks.exec(data)) !== null) {
                     const [, text, href] = match;
                     const link = { href, text, file: filePath };
-                    //  console.log(text)
+
                     if (options.validate) {
                       fetchUrl(link)
-                        .then((link) => {
+                        .then(() => {
                           links.push(link);
                           processFiles(filePaths, index + 1);
                         })
-                        .catch((error) => {
+                        .catch(() => {
                           console.log('Error:', error);
                           links.push(link);
                           processFiles(filePaths, index + 1);

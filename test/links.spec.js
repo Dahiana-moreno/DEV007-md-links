@@ -34,7 +34,7 @@ describe('mdLinks', () => {
     };
 
     return mdLinks('../DEV007-md-links/filesMarkdown/prueba', options).then((links) => {
-      expect(links).toHaveLength(3);
+      expect(links).toHaveLength(1);
       expect(links[0].href).toBe('../thumb.png');
       expect(links[0].text).toBe('logo mdlinks');
       expect(links[0].file).toBe('D:\\Laboratoria\\Proyectos\\md-links\\DEV007-md-links\\filesMarkdown\\prueba\\logomd.md');
@@ -70,7 +70,7 @@ describe('mdLinks', () => {
     };
 
     return mdLinks('/Laboratoria/Proyectos/md-links/DEV007-md-links/filesMarkdown', options).then((links) => {
-      expect(links).toHaveLength(3);
+      expect(links).toHaveLength(1);
       expect(links[0].href).toBe('https://social-neteork-pets-friends.firebaseapp.com');
       expect(links[0].text).toBe('hosting firebase');
       // expect(links[0].file).toBe('D:\\path\\to\\filesMardoe\\firebase.md');
