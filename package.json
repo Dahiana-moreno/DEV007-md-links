@@ -5,6 +5,7 @@
     "node": ">=16.x"
   },
   "scripts": {
+    "start": "node src/cli.js",
     "test": "jest",
     "test-coverage": "jest --coverage"
   },
@@ -18,7 +19,7 @@
     "md-links": "^0.1.0"
   },
   "bin": {
-    "mi-cli": "src/cli.js"
+    "micli": "./src/cli.js"
   },
   "devDependencies": {
     "@babel/cli": "^7.22.9",
