@@ -31,5 +31,5 @@ mdLinks(path, options)
     }
   })
   .catch((error) => {
-    console.error('\nError in the route of directory:', error);
+    console.error('\nError in the path of directory or file: \n', error);
   });

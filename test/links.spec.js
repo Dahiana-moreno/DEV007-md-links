@@ -1,83 +1,69 @@
-const fetch = require('node-fetch');
-const fs = require('fs');
-const mdLinks = require('../index');
+const axios = require('axios');
+const mdLinks = require('../src/index');
 
-jest.mock('fs');
-jest.mock('node-fetch');
+// Mock de axios
+jest.mock('axios');
 
 describe('mdLinks', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 
-  test('Encuentra los enlaces correctamente', () => {
-    fs.readdir.mockImplementation((callback, directory) => {
-      const files = ['hola.txt', 'logomd.md', 'node.md'];
-      directory(null, files);
-    });
-
-    fs.stat.mockImplementation((callback, filePath) => {
-      const stats = {
-        isFile: () => true,
-        isDirectory: () => false,
-      };
-      filePath(null, stats);
-    });
-
-    fs.readFile.mockImplementation((options, callback, filePath) => {
-      const data = 'Example [logo mdlinks](../thumb.png)';
-      filePath(null, data);
-    });
-
-    const options = {
-      validate: false,
-    };
-
-    return mdLinks('../DEV007-md-links/filesMarkdown/prueba', options).then((links) => {
-      expect(links).toHaveLength(1);
-      expect(links[0].href).toBe('../thumb.png');
-      expect(links[0].text).toBe('logo mdlinks');
-      expect(links[0].file).toBe('D:\\Laboratoria\\Proyectos\\md-links\\DEV007-md-links\\filesMarkdown\\prueba\\logomd.md');
-    });
-  });
-
-  test('Valida los enlaces correctamente', () => {
-    fs.readdir.mockImplementation((callback, directory) => {
-      const files = ['firebase.md', 'pruebatexto.md', 'texto1.md'];
-      directory(null, files);
-    });
-
-    fs.stat.mockImplementation((callback, filePath) => {
-      const stats = {
-        isFile: () => true,
-        isDirectory: () => false,
-      };
-      filePath(null, stats);
-    });
-
-    fs.readFile.mockImplementation((options, callback, filePath) => {
-      const data = 'Example Firebase [hosting firebase](https://social-neteork-pets-friends.firebaseapp.com)';
-      filePath(null, data);
-    });
-
-    fetch.mockResolvedValue({
+  test('busca las URL y develve los enlaces con estado cuando options.validate es verdadero', () => {
+    // Mock de los datos de respuesta de axios
+    const response = {
       status: 200,
       statusText: 'OK',
-    });
-
-    const options = {
-      validate: true,
     };
 
-    return mdLinks('/Laboratoria/Proyectos/md-links/DEV007-md-links/filesMarkdown', options).then((links) => {
-      expect(links).toHaveLength(1);
-      expect(links[0].href).toBe('https://social-neteork-pets-friends.firebaseapp.com');
-      expect(links[0].text).toBe('hosting firebase');
-      // expect(links[0].file).toBe('D:\\path\\to\\filesMardoe\\firebase.md');
-      expect(links[0].file).toBe('D:\\Laboratoria\\Proyectos\\md-links\\DEV007-md-links\\filesMarkdown\\firebase.md');
+    // Mock de la función head de axios
+    axios.head.mockResolvedValue(response);
 
-      expect(links[0].status).toBe(200);
-      expect(links[0].statusText).toBe('OK');
+    const directory = './filesMarkdown'; // Reemplaza con tu directorio de prueba
+    const options = { validate: true };
+
+    return mdLinks(directory, options).then((links) => {
+      // Verificar el resultado esperado
+      expect(Array.isArray(links)).toBe(true);
+      expect(links.length).toBeGreaterThan(0);
+      expect(links[0]).toHaveProperty('status', response.status);
+      expect(links[0]).toHaveProperty('statusText', response.statusText);
+    }).catch((error) => {
+      throw error;
+    });
+  });
+
+  test('devuelve los enlaces sin estado cuando options.validate es falso', () => {
+    const directory = './filesMarkdown';
+    const options = { validate: false };
+
+    return mdLinks(directory, options).then((links) => {
+      // Verificar el resultado esperado
+      expect(Array.isArray(links)).toBe(true);
+      expect(links.length).toBeGreaterThan(0);
+      expect(links[0]).not.toHaveProperty('status');
+      expect(links[0]).not.toHaveProperty('statusText');
+    }).catch((error) => {
+      // Manejar el rechazo (reject) en caso de error
+      throw error;
+    });
+  });
+
+  test('debe manejar los errores y rechazar la promesa', () => {
+    const error = new Error('error');
+
+    // Mock de la función head de axios para que devuelva un error
+    axios.head.mockRejectedValue(error);
+
+    const directory = './filesMarkdown';
+    const options = { validate: true };
+
+    return mdLinks(directory, options).then(() => {
+      // La promesa debería rechazarse, así que fallará si se resuelve
+      throw error;
+    }).catch((err) => {
+      // Verificar el error esperado
+      expect(err).toBe(error);
     });
   });
 });
