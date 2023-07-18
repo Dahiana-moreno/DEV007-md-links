@@ -32,7 +32,7 @@ herramienta usando [Node.js](https://nodejs.org/), que lea y analice archivos
 en formato `Markdown`, para verificar los links que contengan y reportar
 algunas estadísticas.
 
-![md-links](https://user-images.githubusercontent.com/110297/42118443-b7a5f1f0-7bc8-11e8-96ad-9cc5593715a6.jpg)
+![md-links](https://css-tricks.com/wp-content/uploads/2016/01/choose-markdown.jpg)
 
 ## 2. Resumen del proyecto
 
@@ -370,7 +370,7 @@ $ md-links ./some/example.md
 ./some/example.md https://otra-cosa.net/algun-doc.html algún doc
 ./some/example.md http://google.com/ Google
 ```
-
+<img src="./images/filesMarkdown.png">
 El comportamiento por defecto no debe validar si las URLs responden ok o no,
 solo debe identificar el archivo markdown (a partir de la ruta que recibe como
 argumento), analizar el archivo Markdown e imprimir los links que vaya
@@ -393,7 +393,7 @@ $ md-links ./some/example.md --validate
 ./some/example.md https://otra-cosa.net/algun-doc.html fail 404 algún doc
 ./some/example.md http://google.com/ ok 301 Google
 ```
-
+<img src ="./images/validate.png"> <p>
 Vemos que el _output_ en este caso incluye la palabra `ok` o `fail` después de
 la URL, así como el status de la respuesta recibida a la petición HTTP a dicha
 URL.
@@ -409,7 +409,8 @@ Total: 3
 Unique: 3
 ```
 
-También podemos combinar `--stats` y `--validate` para obtener estadísticas que
+<image src="./images/stats.png">
+<p> También podemos combinar `--stats` y `--validate` para obtener estadísticas que
 necesiten de los resultados de la validación.
 
 ```sh
@@ -418,7 +419,7 @@ Total: 3
 Unique: 3
 Broken: 1
 ```
-
+<img src="./images/validateStats.png"><p>
 ## 6. Entregables
 
 Módulo instalable via `npm install <github-user>/md-links`. Este módulo debe
@@ -535,7 +536,7 @@ si tienes dudas existenciales con respecto a estas decisiones. No existe una
 ### CLI
 
 * [ ] Expone ejecutable `md-links` en el path (configurado en `package.json`)
-* [ ] Se ejecuta sin errores / output esperado
+* [ X] Se ejecuta sin errores / output esperado
 * [ ] Implementa `--validate`
 * [ ] Implementa `--stats`
 

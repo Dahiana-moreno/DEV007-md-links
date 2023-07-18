@@ -27,125 +27,97 @@ function mdLinks(directory, options) {
     const resolvedPath = path.resolve(directory);
     const searchLinks = /\[([^\]]+)\]\(([^)]+)\)/g;
     let match;
-
     console.log(options);
 
-    fs.stat(resolvedPath, (error, stats) => {
-      if (error) {
-        reject(error);
-        return;
-      }
+    const links = [];
 
-      const links = [];
-
-      if (stats.isFile()) {
-        fs.readFile(resolvedPath, 'utf8', (error, data) => {
+    function processFile(filePath) {
+      return new Promise((resolve, reject) => {
+        fs.stat(filePath, (error, stats) => {
           if (error) {
             reject(error);
+
             return;
           }
 
-          while ((match = searchLinks.exec(data)) !== null) { // archivos individuales
-            const [, text, href] = match;
-            const link = { href, text, file: resolvedPath };
-
-            if (options.validate) {
-              fetchUrl(link)
-                .then(() => {
-                  links.push(link);
-                  resolve(links);
-                })
-                .catch(() => {
-                  console.log('Error:', error);
-                  links.push(link);
-                  resolve(links);
-                });
-            } else {
-              links.push(link);
-              resolve(links);
-            }
-          }
-
-          if (!options.validate) {
-            resolve(links);
-          }
-        });
-      } else if (stats.isDirectory()) {
-        fs.readdir(resolvedPath, (error, files) => {
-          if (error) {
-            reject(error);
-            return;
-          }
-
-          function processFiles(filePaths, index) {
-            if (index >= filePaths.length) {
-              resolve(links);
-              return;
-            }
-
-            const filePath = filePaths[index];
-
-            fs.stat(filePath, (error, fileStats) => {
+          if (stats.isFile() && filePath.endsWith('.md')) {
+            fs.readFile(filePath, 'utf8', (error, data) => {
               if (error) {
                 reject(error);
                 return;
               }
 
-              if (fileStats.isFile() && filePath.endsWith('.md')) {
-                fs.readFile(filePath, 'utf8', (error, data) => {
-                  if (error) {
-                    reject(error);
-                    return;
-                  }
+              while ((match = searchLinks.exec(data)) !== null) {
+                const [, text, href] = match;
+                const link = { href, text, file: filePath };
 
-                  while ((match = searchLinks.exec(data)) !== null) {
-                    const [, text, href] = match;
-                    const link = { href, text, file: filePath };
-
-                    if (options.validate) {
-                      fetchUrl(link)
-                        .then(() => {
-                          links.push(link);
-                          processFiles(filePaths, index + 1);
-                        })
-                        .catch(() => {
-                          console.log('Error:', error);
-                          links.push(link);
-                          processFiles(filePaths, index + 1);
-                        });
-                    } else {
+                if (options.validate) {
+                  fetchUrl(link)
+                    .then(() => {
                       links.push(link);
-                      processFiles(filePaths, index + 1);
-                    }
-                  }
-
-                  if (!options.validate) {
-                    processFiles(filePaths, index + 1);
-                  }
-                });
-              } else if (fileStats.isDirectory()) {
-                fs.readdir(filePath, (error, nestedFiles) => {
-                  if (error) {
-                    reject(error);
-                    return;
-                  }
-
-                  const nestedFilePaths = nestedFiles.map((file) => path.join(filePath, file));
-                  processFiles(nestedFilePaths, 0);
-                });
-              } else {
-                processFiles(filePaths, index + 1);
+                      resolve(links);
+                    })
+                    .catch(() => {
+                      links.push(link);
+                      resolve(links);
+                    });
+                } else {
+                  links.push(link);
+                  resolve(links);
+                }
+              }
+              if (!options.validate) {
+                resolve(links);
               }
             });
-          }
+          } else if (stats.isDirectory()) {
+            fs.readdir(filePath, (error, files) => {
+              if (error) {
+                reject(error);
+                return;
+              }
 
-          const filePaths = files.map((file) => path.join(resolvedPath, file));
-          processFiles(filePaths, 0);
+              const filePromises = files.map((file) => processFile(path.join(filePath, file)));
+
+              Promise.all(filePromises)
+                .then(() => {
+                  resolve();
+                })
+                .catch((error) => {
+                  reject(error);
+                });
+            });
+          } else {
+            resolve();
+            //   console.log('verifica que el archivo sea de extencion .md');
+          }
         });
-      } else {
-        reject(new Error('El directorio o archivo especificado no es válido.'));
-      }
-    });
+      });
+    }
+
+    function validateLinks() {
+      const linkPromises = links.map((link) => fetchUrl(link));
+
+      Promise.all(linkPromises)
+        .then(() => {
+          resolve(links);
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    }
+
+    processFile(resolvedPath)
+      .then(() => {
+        if (options.validate) {
+          validateLinks();
+        } else {
+          resolve(links);
+        }
+      })
+      .catch((error) => {
+        reject(error);
+      });
   });
 }
 
