@@ -89,7 +89,7 @@ function mdLinks(directory, options) {
             });
           } else {
             resolve();
-            //   console.log('verifica que el archivo sea de extencion .md');
+            console.log('verifica que el archivo sea de extencion .md');
           }
         });
       });

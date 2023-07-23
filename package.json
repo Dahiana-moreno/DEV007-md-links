@@ -1,6 +1,6 @@
 {
   "name": "md-linksjdb",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "index.js",
   "engines": {
     "node": ">=16.x"
@@ -18,7 +18,7 @@
   "dependencies": {
     "axios": "^1.4.0",
     "md-links": "https://github.com/Dahiana-moreno/DEV007-md-links.git",
-    "md-linksjdb": "^0.1.0"
+    "md-linksjdb": "^0.1.1"
   },
   "bin": {
     "micli": "./src/cli.js"
